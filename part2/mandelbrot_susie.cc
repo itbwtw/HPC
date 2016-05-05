@@ -32,6 +32,14 @@
  	return (i - rank) % (P) == 0 ;
  }
 
+ int susie_rank(int i){
+ 	int P, rank; 
+ 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+ 	MPI_Comm_size(MPI_COMM_WORLD, &P);
+ 	int n = (i - rank) / P;
+ 	return i - n*P ;
+ }
+
  int joe(int i){
  	int P, rank; 
  	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -81,7 +89,7 @@
  	double row[width];
  	if (rank == 0) {
  		for (int i = 1; i < height + 1; i++) {
- 			MPI_Recv(&row, width, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+ 			MPI_Recv(&row, width, MPI_DOUBLE, susie_rank(i+1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
  			for (int j =0; j < width; j++) {
  				img_view(j, i) = render(row[j]/512.0);
  			}
@@ -91,7 +99,7 @@
  		y = minY;
  		for (int i = 0; i < height; i++) {
  			x = minX;
- 			if (susie(i)){
+ 			if (susie(i+1)){
  				for (int j = 0; j < width; j++) {
  					row[j] = mandelbrot(x,y);
  					x += jt;
