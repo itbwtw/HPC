@@ -36,8 +36,8 @@
  	int P, rank; 
  	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
  	MPI_Comm_size(MPI_COMM_WORLD, &P);
- 	int n = (i - rank) / P;
- 	return i - n*P ;
+ 	int n = i / P;
+ 	return (i - n*P) ;
  }
 
  int joe(int i){
@@ -76,20 +76,12 @@
  	gil::rgb8_image_t img(height, width);
  	auto img_view = gil::view(img);
 
- 	y = minY;
- 	for (int i = 0; i < height; ++i) {
- 		x = minX;
- 		for (int j = 0; j < width; ++j) {
- 			img_view(j, i) = render(mandelbrot(x, y)/512.0);
- 			x += jt;
- 		}
- 		y += it;
- 	}
-
  	double row[width];
  	if (rank == 0) {
- 		for (int i = 1; i < height + 1; i++) {
+ 		for (int i = 0; i < height; i++) {
+printf("row %i waiting for processor %d \n", i, susie_rank(i+1));
  			MPI_Recv(&row, width, MPI_DOUBLE, susie_rank(i+1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+printf("row %i recived.\n",i);
  			for (int j =0; j < width; j++) {
  				img_view(j, i) = render(row[j]/512.0);
  			}
@@ -104,6 +96,7 @@
  					row[j] = mandelbrot(x,y);
  					x += jt;
  				}
+printf("Sending row %d\n",i);
  				MPI_Send(&row, width, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
  			}
  			y += jt;
