@@ -29,14 +29,14 @@
  	int P, rank; 
  	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
  	MPI_Comm_size(MPI_COMM_WORLD, &P);
- 	return (i - rank) % (P) == 0
+ 	return (i - rank) % (P) == 0 ;
  }
 
  int joe(int i){
  	int P, rank; 
  	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
  	MPI_Comm_size(MPI_COMM_WORLD, &P);
- 	return (i > (rank - 1) * P) && (i <= rank * P)
+ 	return (i > (rank - 1) * P) && (i <= rank * P) ;
  }
 
  int main (int argc, char* argv[])
@@ -93,7 +93,7 @@
  			x = minX;
  			if (susie(i)){
  				for (int j = 0; j < width; j++) {
- 					row[j] = render(mandelbrot(x,y));
+ 					row[j] = mandelbrot(x,y);
  					x += jt;
  				}
  				MPI_Send(&row, width, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
