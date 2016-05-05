@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -q eecs221
+#$ -q pub8i
 #$ -pe mpi 16
 #$ -N pingpong
 #$ -R y
