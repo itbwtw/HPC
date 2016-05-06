@@ -75,34 +75,58 @@
 
  	gil::rgb8_image_t img(height, width);
  	auto img_view = gil::view(img);
-
+ 	double image[height][width];
  	double row[width];
- 	if (rank == 0) {
- 		for (int i = 0; i < height; i++) {
-printf("row %i waiting for processor %d \n", i, susie_rank(i+1));
- 			MPI_Recv(&row, width, MPI_DOUBLE, susie_rank(i+1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-printf("row %i recived.\n",i);
- 			for (int j =0; j < width; j++) {
- 				img_view(j, i) = render(row[j]/512.0);
+
+ 	// if (rank == 0) {
+ 	// 	for (int i = 0; i < height; i++) {
+ 	// 		printf("row %i waiting for processor %d \n", i+1, susie_rank(i+1));
+ 	// 		MPI_Recv(&row, width, MPI_DOUBLE, susie_rank(i+1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+ 	// 		printf("row %i recived.\n",i+1);
+ 	// 		for (int j =0; j < width; j++) {
+ 	// 			img_view(j, i) = render(row[j]/512.0);
+ 	// 		}
+ 	// 	}
+ 	// 	gil::png_write_view("mandelbrot.png", const_view(img));
+ 	// } else {
+ 	// 	y = minY;
+ 	// 	for (int i = 0; i < height; i++) {
+ 	// 		x = minX;
+ 	// 		if (susie(i+1)){
+ 	// 			for (int j = 0; j < width; j++) {
+ 	// 				row[j] = mandelbrot(x,y);
+ 	// 				x += jt;
+ 	// 			}
+ 	// 			printf("Sending row %d\n",i+1);
+ 	// 			MPI_Send(&row, width, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+ 	// 		}
+ 	// 		y += jt;
+ 	// 	}
+ 	// }
+ 	for (int i = 0; i < height; i++) {
+ 		if (rank != susie_rank(i)){
+ 			y += jt;
+ 			continue;
+ 		} else {
+ 			x = minX;
+ 			for (int j = 0; j < width; j++) {
+ 				row[j] = mandelbrot(x,y);
+ 				x += jt;
+ 			}
+ 			y += jt;
+ 			MPI_Gather(row, width,MPI_DOUBLE,image[i],width,MPI_DOUBLE,0,MPI_COMM_WORLD);
+ 		}
+ 	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+ 	if (rank == 0){
+ 		for (int i = 0; i < height; i++){
+ 			for (int j = 0; j < width; j++){
+ 				img_view(j, i) = render(image[i][j]/512.0);
  			}
  		}
  		gil::png_write_view("mandelbrot.png", const_view(img));
- 	} else {
- 		y = minY;
- 		for (int i = 0; i < height; i++) {
- 			x = minX;
- 			if (susie(i+1)){
- 				for (int j = 0; j < width; j++) {
- 					row[j] = mandelbrot(x,y);
- 					x += jt;
- 				}
-printf("Sending row %d\n",i);
- 				MPI_Send(&row, width, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
- 			}
- 			y += jt;
- 		}
  	}
  	MPI_Finalize();
  	return 0;
  }
-
