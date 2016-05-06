@@ -67,7 +67,7 @@ int joe_rank(int i){
 
  	gil::rgb8_image_t img(height, width);
  	auto img_view = gil::view(img);
-	double image[height][width];
+ 	double image[height][width];
  	double row[width];
 
  	for (int i = 0; i < height; i++) {
